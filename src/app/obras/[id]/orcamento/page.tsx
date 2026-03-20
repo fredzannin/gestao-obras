@@ -33,7 +33,8 @@ export default function OrcamentoPage() {
     ])
     if (!obraData) { router.push('/'); return }
     setObra(obraData)
-    setBdi(obraData.bdi)
+    setBdi((obraData as any).bdi)
+```
     const etapasComServicos: EtapaComServicos[] = (etapasData || []).map(et => {
       const svs = (servicosData || [])
         .filter(s => s.etapa_id === et.id)
