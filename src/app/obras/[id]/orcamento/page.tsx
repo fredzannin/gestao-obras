@@ -3,13 +3,14 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronDown, ChevronRight, Plus, Trash2, Download,
-  ArrowLeft, Building2, Save, FileSpreadsheet, FileText, FileSearch } from 'lucide-react'
+import {
+  ChevronDown, ChevronRight, Plus, Trash2, Download,
+  ArrowLeft, Building2, Save, FileSpreadsheet, FileText, FileSearch
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { Obra, Etapa, Servico, EtapaComServicos, TipoBase } from '@/types/database'
 import {
-  formatCurrency, formatNumber, calcularTotalEtapa,
-  calcularTotalComBDI, STATUS_LABELS, STATUS_COLORS
+  formatCurrency, calcularTotalEtapa, calcularTotalComBDI, STATUS_LABELS, STATUS_COLORS
 } from '@/lib/utils'
 
 export default function OrcamentoPage() {
@@ -32,13 +33,12 @@ export default function OrcamentoPage() {
       supabase.from('servicos').select('*').eq('obra_id', obraId),
     ])
     if (!obraData) { router.push('/'); return }
-    setObra(obraData)
-    setBdi((obraData as any).bdi)
-```
-    const etapasComServicos: EtapaComServicos[] = (etapasData || []).map(et => {
+    setObra(obraData as Obra)
+    setBdi((obraData as any).bdi ?? 25)
+    const etapasComServicos: EtapaComServicos[] = (etapasData || []).map((et: any) => {
       const svs = (servicosData || [])
-        .filter(s => s.etapa_id === et.id)
-        .map(s => ({ ...s, total: s.quantidade * s.preco_unitario }))
+        .filter((s: any) => s.etapa_id === et.id)
+        .map((s: any) => ({ ...s, total: s.quantidade * s.preco_unitario }))
       return { ...et, servicos: svs, total: calcularTotalEtapa(svs) }
     })
     setEtapas(etapasComServicos)
@@ -47,7 +47,6 @@ export default function OrcamentoPage() {
 
   useEffect(() => { carregar() }, [carregar])
 
-  // ── Etapas ──
   const addEtapa = async () => {
     const nome = prompt('Nome da nova etapa:')
     if (!nome) return
@@ -69,7 +68,6 @@ export default function OrcamentoPage() {
     ) as EtapaComServicos[])
   }
 
-  // ── Serviços ──
   const addServico = async (etapaId: string) => {
     const { data } = await supabase.from('servicos').insert({
       etapa_id: etapaId, obra_id: obraId,
@@ -78,17 +76,12 @@ export default function OrcamentoPage() {
     }).select().single()
     if (data) {
       setEtapas(prev => prev.map(e => e.id === etapaId ? {
-        ...e,
-        servicos: [...e.servicos, { ...data, total: 0 }],
-        total: e.total,
+        ...e, servicos: [...e.servicos, { ...data, total: 0 }], total: e.total,
       } : e))
     }
   }
 
-  const updateServico = async (
-    etapaId: string, servicoId: string,
-    campo: keyof Servico, valor: string | number
-  ) => {
+  const updateServico = async (etapaId: string, servicoId: string, campo: keyof Servico, valor: string | number) => {
     await supabase.from('servicos').update({ [campo]: valor }).eq('id', servicoId)
     setEtapas(prev => prev.map(e => {
       if (e.id !== etapaId) return e
@@ -110,18 +103,15 @@ export default function OrcamentoPage() {
     }))
   }
 
-  // ── BDI ──
   const salvarBdi = async () => {
     setSaving(true)
     await supabase.from('obras').update({ bdi }).eq('id', obraId)
     setSaving(false)
   }
 
-  // ── Cálculos ──
   const custoDireto = etapas.reduce((s, e) => s + e.total, 0)
   const totalComBdi = calcularTotalComBDI(custoDireto, bdi)
 
-  // ── Exportação ──
   const handleExportExcel = async () => {
     if (!obra) return
     const { exportarExcel } = await import('@/lib/exportar')
@@ -146,8 +136,6 @@ export default function OrcamentoPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -169,18 +157,16 @@ export default function OrcamentoPage() {
               </button>
               {showExport && (
                 <div className="absolute right-0 top-9 bg-white rounded-xl border border-gray-100 shadow-lg z-20 w-44 overflow-hidden">
-                  <button onClick={handleExportExcel}
-                    className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-50 text-left">
+                  <button onClick={handleExportExcel} className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-50 text-left">
                     <FileSpreadsheet size={14} className="text-green-600" /> Excel (.xlsx)
                   </button>
-                  <button onClick={handleExportPDF}
-                    className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-50 text-left">
+                  <button onClick={handleExportPDF} className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-50 text-left">
                     <FileText size={14} className="text-red-500" /> PDF
                   </button>
                 </div>
               )}
             </div>
-             <Link href={`/obras/${obraId}/pdf`} className="btn btn-sm">
+            <Link href={`/obras/${obraId}/pdf`} className="btn btn-sm">
               <FileSearch size={14} /> Leitor PDF
             </Link>
             <button onClick={addEtapa} className="btn btn-primary btn-sm">
@@ -191,8 +177,6 @@ export default function OrcamentoPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-6">
-
-        {/* Cards resumo */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="card p-4">
             <p className="text-xs text-gray-400 mb-1">Custo direto</p>
@@ -214,7 +198,6 @@ export default function OrcamentoPage() {
           </div>
         </div>
 
-        {/* BDI */}
         <div className="card p-4 mb-4 flex items-center gap-4 flex-wrap">
           <span className="text-sm text-gray-500">BDI global da obra:</span>
           <input type="number" min="0" max="100" step="0.5" value={bdi}
@@ -224,14 +207,10 @@ export default function OrcamentoPage() {
           <button onClick={salvarBdi} className="btn btn-sm btn-primary" disabled={saving}>
             <Save size={12} /> {saving ? 'Salvando...' : 'Salvar BDI'}
           </button>
-          <span className="text-xs text-gray-300 ml-auto hidden md:block">
-            Bonificações e Despesas Indiretas — aplicado sobre o custo direto total
-          </span>
         </div>
 
-        {/* Etapas */}
         {etapas.length === 0 ? (
-         <div className="text-center py-16">
+          <div className="text-center py-16">
             <p className="text-gray-400 mb-3">Nenhuma etapa cadastrada</p>
             <button onClick={addEtapa} className="btn btn-primary">
               <Plus size={14} /> Adicionar primeira etapa
@@ -244,11 +223,8 @@ export default function OrcamentoPage() {
               const open = (etapa as any)._open !== false
               return (
                 <div key={etapa.id} className="card overflow-hidden">
-                  {/* Header da etapa */}
-                  <div
-                    className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => toggleEtapa(etapa.id)}
-                  >
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => toggleEtapa(etapa.id)}>
                     <div className="flex items-center gap-2 min-w-0">
                       {open ? <ChevronDown size={14} className="text-gray-400 shrink-0" />
                              : <ChevronRight size={14} className="text-gray-400 shrink-0" />}
@@ -257,18 +233,14 @@ export default function OrcamentoPage() {
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="font-semibold text-sm text-primary-600">{formatCurrency(etapa.total)}</span>
-                      <button onClick={e => { e.stopPropagation(); addServico(etapa.id) }}
-                        className="btn btn-sm" title="Adicionar serviço">
+                      <button onClick={e => { e.stopPropagation(); addServico(etapa.id) }} className="btn btn-sm">
                         <Plus size={12} /> Serviço
                       </button>
-                      <button onClick={e => { e.stopPropagation(); deleteEtapa(etapa.id) }}
-                        className="btn btn-sm btn-danger" title="Remover etapa">
+                      <button onClick={e => { e.stopPropagation(); deleteEtapa(etapa.id) }} className="btn btn-sm btn-danger">
                         <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
-
-                  {/* Tabela de serviços */}
                   {open && (
                     <div className="overflow-x-auto">
                       {etapa.servicos.length === 0 ? (
@@ -293,14 +265,11 @@ export default function OrcamentoPage() {
                             {etapa.servicos.map(sv => (
                               <tr key={sv.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                                 <td className="px-4 py-1.5">
-                                  <input className="input text-xs py-1"
-                                    value={sv.codigo}
-                                    onChange={e => updateServico(etapa.id, sv.id, 'codigo', e.target.value)}
-                                    placeholder="Código" />
+                                  <input className="input text-xs py-1" value={sv.codigo}
+                                    onChange={e => updateServico(etapa.id, sv.id, 'codigo', e.target.value)} placeholder="Código" />
                                 </td>
                                 <td className="px-2 py-1.5">
-                                  <select className="input text-xs py-1"
-                                    value={sv.tipo_base}
+                                  <select className="input text-xs py-1" value={sv.tipo_base}
                                     onChange={e => updateServico(etapa.id, sv.id, 'tipo_base', e.target.value as TipoBase)}>
                                     <option value="sinapi">SINAPI</option>
                                     <option value="sicro">SICRO</option>
@@ -308,24 +277,20 @@ export default function OrcamentoPage() {
                                   </select>
                                 </td>
                                 <td className="px-2 py-1.5">
-                                  <input className="input text-xs py-1"
-                                    value={sv.descricao}
+                                  <input className="input text-xs py-1" value={sv.descricao}
                                     onChange={e => updateServico(etapa.id, sv.id, 'descricao', e.target.value)} />
                                 </td>
                                 <td className="px-2 py-1.5">
-                                  <input className="input text-xs py-1 text-center"
-                                    value={sv.unidade}
+                                  <input className="input text-xs py-1 text-center" value={sv.unidade}
                                     onChange={e => updateServico(etapa.id, sv.id, 'unidade', e.target.value)} />
                                 </td>
                                 <td className="px-2 py-1.5">
-                                  <input className="input text-xs py-1 text-right"
-                                    type="number" min="0" step="0.01"
+                                  <input className="input text-xs py-1 text-right" type="number" min="0" step="0.01"
                                     value={sv.quantidade}
                                     onChange={e => updateServico(etapa.id, sv.id, 'quantidade', parseFloat(e.target.value) || 0)} />
                                 </td>
                                 <td className="px-2 py-1.5">
-                                  <input className="input text-xs py-1 text-right"
-                                    type="number" min="0" step="0.01"
+                                  <input className="input text-xs py-1 text-right" type="number" min="0" step="0.01"
                                     value={sv.preco_unitario}
                                     onChange={e => updateServico(etapa.id, sv.id, 'preco_unitario', parseFloat(e.target.value) || 0)} />
                                 </td>
@@ -333,8 +298,7 @@ export default function OrcamentoPage() {
                                   {formatCurrency(sv.total)}
                                 </td>
                                 <td className="px-2 py-1.5">
-                                  <button onClick={() => deleteServico(etapa.id, sv.id)}
-                                    className="text-red-300 hover:text-red-500 transition-colors">
+                                  <button onClick={() => deleteServico(etapa.id, sv.id)} className="text-red-300 hover:text-red-500 transition-colors">
                                     <Trash2 size={12} />
                                   </button>
                                 </td>
@@ -362,7 +326,6 @@ export default function OrcamentoPage() {
           </div>
         )}
 
-        {/* Total final */}
         {etapas.length > 0 && (
           <div className="card p-5 mt-4 flex flex-wrap items-center justify-end gap-6">
             <div className="text-right">
@@ -384,3 +347,4 @@ export default function OrcamentoPage() {
     </div>
   )
 }
+```
