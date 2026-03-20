@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #1D9E75;
+  --color-primary-dark: #0F6E56;
+  --color-primary-light: #E1F5EE;
+  --color-accent: #EF9F27;
+  --color-danger: #E24B4A;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  color: #1a1a1a;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 
+         text-sm font-medium bg-white hover:bg-gray-50 transition-colors cursor-pointer;
+}
+
+.btn-primary {
+  @apply bg-primary-400 border-primary-400 text-white hover:bg-primary-600;
+}
+
+.btn-danger {
+  @apply border-red-200 text-red-700 hover:bg-red-50;
+}
+
+.btn-sm {
+  @apply px-2 py-1 text-xs;
+}
+
+.card {
+  @apply bg-white rounded-xl border border-gray-100 shadow-sm;
+}
+
+.input {
+  @apply w-full px-3 py-2 rounded-lg border border-gray-200 text-sm 
+         focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400
+         bg-white transition-colors;
+}
+
+.label {
+  @apply block text-xs font-medium text-gray-500 mb-1;
+}
+
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+}
+
+.badge-sinapi { @apply bg-blue-50 text-blue-800; }
+.badge-sicro  { @apply bg-amber-50 text-amber-800; }
+.badge-propria{ @apply bg-green-50 text-green-800; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
