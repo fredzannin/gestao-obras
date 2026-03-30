@@ -131,14 +131,14 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {obras.map(obra => (
-              <div key={obra.id} className="card p-5 hover:shadow-md transition-shadow relative group">
+               <div key={obra.id} className="relative group">
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); excluirObra(obra.id, obra.nome) }}
                   className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity btn btn-sm btn-danger z-10"
                   title="Excluir obra">
                   <Trash2 size={12} />
                 </button>
-                <Link href={`/obras/${obra.id}/orcamento`} className="block">
+                <Link href={`/obras/${obra.id}/orcamento`} className="card p-5 hover:shadow-md transition-shadow block">
                   <div className="flex items-start justify-between mb-3">
                     <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
                       <Building2 size={18} className="text-primary-600" />
