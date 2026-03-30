@@ -25,15 +25,18 @@ export interface Servico {
   id: string
   etapa_id: string
   obra_id: string
-  codigo: string
-  tipo_base: TipoBase
+  codigo?: string
+  codigo_sinapi?: string
+  tipo_base?: TipoBase
   descricao: string
   unidade: string
   quantidade: number
   preco_unitario: number
+  preco_total: number
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
+
 
 export interface ServicoComCalculo extends Servico {
   total: number
