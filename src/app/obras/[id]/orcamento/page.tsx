@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, Building2, MapPin, TrendingUp, Clock, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { Obra } from '@/types/database'
-import { formatCurrency, STATUS_LABELS, STATUS_COLORS } from '@/lib/utils'
+import { STATUS_LABELS, STATUS_COLORS } from '@/lib/utils'
 
 export default function HomePage() {
+  const router = useRouter()
   const [obras, setObras] = useState<Obra[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -40,7 +41,7 @@ export default function HomePage() {
   }
 
   async function excluirObra(id: string, nome: string) {
-    if (!confirm(`Excluir a obra "${nome}" e todos os seus dados? Esta ação não pode ser desfeita.`)) return
+    if (!confirm(`Excluir a obra "${nome}" e todos os seus dados?`)) return
     await supabase.from('servicos').delete().eq('obra_id', id)
     await supabase.from('etapas').delete().eq('obra_id', id)
     await supabase.from('obras').delete().eq('id', id)
@@ -70,10 +71,10 @@ export default function HomePage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total de obras', value: obras.length, icon: Building2 },
-            { label: 'Em andamento', value: obras.filter(o => o.status === 'em_andamento').length, icon: TrendingUp },
-            { label: 'Planejamento', value: obras.filter(o => o.status === 'planejamento').length, icon: Clock },
-            { label: 'Concluídas', value: obras.filter(o => o.status === 'concluida').length, icon: Building2 },
+            { label: 'Total de obras', value: obras.length },
+            { label: 'Em andamento', value: obras.filter(o => o.status === 'em_andamento').length },
+            { label: 'Planejamento', value: obras.filter(o => o.status === 'planejamento').length },
+            { label: 'Concluídas', value: obras.filter(o => o.status === 'concluida').length },
           ].map((s, i) => (
             <div key={i} className="card p-4">
               <p className="text-xs text-gray-400 mb-1">{s.label}</p>
@@ -89,7 +90,7 @@ export default function HomePage() {
               <div className="space-y-3">
                 <div>
                   <label className="label">Nome da obra *</label>
-                  <input className="input" placeholder="Ex: Residência Unifamiliar - Bairro X"
+                  <input className="input" placeholder="Ex: Residência Unifamiliar"
                     value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
                 </div>
                 <div>
@@ -99,7 +100,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <label className="label">Descrição (opcional)</label>
-                  <textarea className="input h-20 resize-none" placeholder="Descrição breve da obra..."
+                  <textarea className="input h-20 resize-none" placeholder="Descrição breve..."
                     value={form.descricao} onChange={e => setForm({ ...form, descricao: e.target.value })} />
                 </div>
                 <div>
@@ -131,31 +132,29 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {obras.map(obra => (
-               <div key={obra.id} className="relative group">
+              <div key={obra.id} className="card p-5 hover:shadow-md transition-shadow relative group cursor-pointer"
+                onClick={() => router.push(`/obras/${obra.id}/orcamento`)}>
                 <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); excluirObra(obra.id, obra.nome) }}
-                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity btn btn-sm btn-danger z-10"
-                  title="Excluir obra">
+                  onClick={e => { e.stopPropagation(); excluirObra(obra.id, obra.nome) }}
+                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity btn btn-sm btn-danger z-10">
                   <Trash2 size={12} />
                 </button>
-                <Link href={`/obras/${obra.id}/orcamento`} className="card p-5 hover:shadow-md transition-shadow block">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
-                      <Building2 size={18} className="text-primary-600" />
-                    </div>
-                    <span className={`badge ${STATUS_COLORS[obra.status]}`}>
-                      {STATUS_LABELS[obra.status]}
-                    </span>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
+                    <Building2 size={18} className="text-primary-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{obra.nome}</h3>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
-                    <MapPin size={11} /> {obra.local}
-                  </div>
-                  <div className="border-t border-gray-50 pt-3 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">BDI: {obra.bdi}%</span>
-                    <span className="text-xs font-medium text-primary-600">Ver orçamento →</span>
-                  </div>
-                </Link>
+                  <span className={`badge ${STATUS_COLORS[obra.status]}`}>
+                    {STATUS_LABELS[obra.status]}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">{obra.nome}</h3>
+                <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
+                  <MapPin size={11} /> {obra.local}
+                </div>
+                <div className="border-t border-gray-50 pt-3 flex items-center justify-between">
+                  <span className="text-xs text-gray-400">BDI: {obra.bdi}%</span>
+                  <span className="text-xs font-medium text-primary-600">Ver orçamento →</span>
+                </div>
               </div>
             ))}
           </div>
@@ -164,7 +163,3 @@ export default function HomePage() {
     </div>
   )
 }
-
-
-
-
