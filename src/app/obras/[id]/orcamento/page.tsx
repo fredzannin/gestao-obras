@@ -133,8 +133,8 @@ export default function HomePage() {
             {obras.map(obra => (
               <div key={obra.id} className="card p-5 hover:shadow-md transition-shadow relative group">
                 <button
-                  onClick={() => excluirObra(obra.id, obra.nome)}
-                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity btn btn-sm btn-danger"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); excluirObra(obra.id, obra.nome) }}
+                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity btn btn-sm btn-danger z-10"
                   title="Excluir obra">
                   <Trash2 size={12} />
                 </button>
